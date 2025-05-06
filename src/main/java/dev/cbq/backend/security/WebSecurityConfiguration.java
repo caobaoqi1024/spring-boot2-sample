@@ -8,12 +8,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,30 +23,13 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public PasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
-
-	@Bean
-	public UserDetailsService userDetailsService() {
-		InMemoryUserDetailsManager userManager = new InMemoryUserDetailsManager();
-		userManager.createUser(User
-			.withUsername("user")
-			.password(passwordEncoder().encode("123456"))
-			.roles("user")
-			.build());
-		userManager.createUser(User
-			.withUsername("admin")
-			.password(passwordEncoder().encode("123456"))
-			.roles("admin")
-			.build());
-		return userManager;
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 //		http.csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
 		http.csrf().disable();
-		http.userDetailsService(userDetailsService());
 		http.authorizeRequests()
 			.antMatchers("/api/**").hasRole("admin")
 			.anyRequest().authenticated();
